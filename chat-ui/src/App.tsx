@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import './App.css'
 
-type Message = {
+export type Message = {
   content: string;
-  role: "user" | "assistant";
+  sender: "user" | "chat";
   msgID: string;
 };
 
