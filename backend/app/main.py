@@ -1,7 +1,8 @@
 from typing import Annotated
-from app.settings import settings
 from fastapi import Depends, FastAPI
+from app.settings import settings
 from app.schemas import ChatRequest, ChatResponse
+from app.llm import get_reply
 
 app = FastAPI()
 
@@ -11,4 +12,4 @@ async def health_check():
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
-    return ChatResponse(reply=f"Echo: {request.messages[-1].content}")
+    return ChatResponse(reply=await get_reply(request.messages))
