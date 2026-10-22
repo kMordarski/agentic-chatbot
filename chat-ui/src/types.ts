@@ -5,6 +5,6 @@ export type Message = {
 };
 
 export type MessageToSend = {
-    role: "user" | "asisstant";
+    role: "user" | "assistant";
     content: string;
 }

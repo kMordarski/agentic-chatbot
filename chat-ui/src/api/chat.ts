@@ -1,5 +1,5 @@
 
-import type { Message, MessageToSend } from '../src/types';
+import type { Message, MessageToSend } from '../types';
 
 
 function messageChange({message}: {message: Message}): MessageToSend {
