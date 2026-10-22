@@ -3,7 +3,7 @@ import './App.css'
 
 type Message = {
   content: string;
-  sender: "user" | "chat";
+  role: "user" | "assistant";
   msgID: string;
 };
 

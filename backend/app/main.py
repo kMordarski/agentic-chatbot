@@ -1,19 +1,14 @@
 from typing import Annotated
-
+from app.settings import settings
 from fastapi import Depends, FastAPI
+from app.schemas import ChatRequest, ChatResponse
 
 app = FastAPI()
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "model_name": settings.model_name}
 
-async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
-    return {"q": q, "skip": skip, "limit": limit}
-
-
-@app.get("/items/")
-async def read_items(commons: Annotated[dict, Depends(common_parameters)]):
-    return commons
-
-
-@app.get("/users/")
-async def read_users(commons: Annotated[dict, Depends(common_parameters)]):
-    return commons
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    return ChatResponse(reply=f"Echo: {request.messages[-1].content}")
