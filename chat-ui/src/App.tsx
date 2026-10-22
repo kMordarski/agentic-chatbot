@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-
-export type Message = {
-  content: string;
-  sender: "user" | "chat";
-  msgID: string;
-};
+import { Message } from "./types";
 
 function MessageBubble({message} : {message: Message}) {
   const align = message.sender === "user" ? "justify-end" : "justify-start"
