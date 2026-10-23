@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { Message } from "./types";
+import type { Message } from "./types";
 
 function MessageBubble({message} : {message: Message}) {
   const align = message.sender === "user" ? "justify-end" : "justify-start"
