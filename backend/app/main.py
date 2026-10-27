@@ -1,5 +1,7 @@
+import json
 from typing import Annotated
 from fastapi import Depends, FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.llm import AnthropicLLM, get_llm
 from app.settings import settings, frontend_origin
@@ -23,3 +25,17 @@ async def chat(request: ChatRequest,
                llm: Annotated[AnthropicLLM,
                               Depends(get_llm)]):
     return ChatResponse(reply=await llm.reply(request.messages))
+
+@app.post("/chat/stream")
+async def chat_stream(request: ChatRequest,
+                    llm: Annotated[AnthropicLLM,
+                                   Depends(get_llm)]):
+    async def event_gen():
+        
+        async for chunk in llm.stream(request.messages):
+            
+            yield f"data: {json.dumps(chunk)}\n\n"
+            
+        yield "data: [DONE]\n\n"
+    
+    return StreamingResponse(event_gen(), media_type="text/event-stream")

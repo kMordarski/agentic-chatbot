@@ -20,7 +20,17 @@ class AnthropicLLM:
             )
         return response.content[0].text
 
-    async def stream(self, messages: list[Message]) -> AsyncIterator[str]: ...
+    async def stream(self, messages: list[Message]) -> AsyncIterator[str]:
+        async with self.client.messages.stream(
+                model=settings.model_name,
+                max_tokens=settings.max_tokens,
+                system=SYSTEM_PROMPT,
+                messages=[m.model_dump() for m in messages]            
+            ) as s:
+        
+            async for chunk in s.text_stream:
+                            
+                yield chunk
 
 @lru_cache
 def get_llm() -> AnthropicLLM:
