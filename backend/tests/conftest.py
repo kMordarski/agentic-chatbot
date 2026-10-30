@@ -1,31 +1,29 @@
 import os
 
-os.environ.setdefault('APP_API_KEY', 'test-key')
-os.environ.setdefault('MODEL_NAME', 'claude-haiku-5-5')
-os.environ.setdefault('MAX_TOKENS', '1024')
-os.environ.setdefault('ANTHROPIC_API_KEY', 'test-andthropic-key')
+os.environ.setdefault("APP_API_KEY", "test-key")
+os.environ.setdefault("MODEL_NAME", "claude-haiku-5-5")
+os.environ.setdefault("MAX_TOKENS", "1024")
+os.environ.setdefault("ANTHROPIC_API_KEY", "test-anthropic-key")
 
-from app.settings import settings
+import pytest
+from fastapi.testclient import TestClient
+
 from app.main import app
-from pydantic import SecretStr
+from app.llm import get_llm
 from app.schemas import Message
 
 
-
 class FakeLLM:
-    def __init__(self):
-        self.client = 'fake_key'
-        
     async def reply(self, messages: list[Message]) -> str:
-        response = await self.client.messages.create(
-                model=settings.model_name,
-                max_tokens=settings.max_tokens,
-                system=SYSTEM_PROMPT,
-                messages=[m.model_dump() for m in messages]
-            )
-        return 'example_text'
+        return "fixed_string"
 
     async def stream(self, messages: list[Message]):
-        while messages:
-            yield messages
-        
+        for item in ["hel", "lo", "!"]:
+            yield item
+
+
+@pytest.fixture
+def client():
+    app.dependency_overrides[get_llm] = lambda: FakeLLM()
+    yield TestClient(app)
+    app.dependency_overrides.clear()

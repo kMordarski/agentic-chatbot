@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.llm import AnthropicLLM, get_llm
-from app.settings import settings, frontend_origin
+from app.settings import settings
 from app.schemas import ChatRequest, ChatResponse
 from app.auth import verify_api_key
 
@@ -12,9 +12,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_origin],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.frontend_origin,
+    allow_methods=['GET', 'POST'],
+    allow_headers=['Content-Type', 'X-API-Key'],
 )
 
 @app.get("/health")
