@@ -11,5 +11,6 @@ class Settings(BaseSettings):
     max_tokens: int
     app_api_key: SecretStr
     frontend_origin : list[str] = ['http://localhost:5173']
+    database_url: str
     
 settings = Settings()
