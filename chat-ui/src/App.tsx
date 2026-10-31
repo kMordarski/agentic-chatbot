@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import './App.css'
 import type { Message } from "./types";
 import { streamChat } from './api/chat';
@@ -36,7 +36,12 @@ function App() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({behavior: "smooth"}); 
+  }, [messages]);
+
   async function handleSubmit(e: React.FormEvent){
 
     e.preventDefault();
@@ -66,6 +71,7 @@ function App() {
     <div className = "flex flex-col h-screen max-w-2xl mx-auto p-4">
       <div className = "flex-1 overflow-y-auto">
         <MessageList messages={messages}/>
+        <div ref={bottomRef} />
       </div>
       {error && <p className="text-red-600">{error}</p>}
       <form onSubmit={handleSubmit} className="flex gap-2">
