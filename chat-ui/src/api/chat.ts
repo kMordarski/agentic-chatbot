@@ -11,13 +11,38 @@ function messageChange({message}: {message: Message}): MessageToSend {
     )
 }
 
-// export function sendChat(messages: Message[]) {
-//     return(
-//             messages.map((message: Message) => (
-//                 messageChange({message})
-//             ))
-//     )
-// }
+function messageReverse({message}: {message: MessageToSend}): Message {
+
+    const sender = message.role === "user" ? "user" : "chat";
+    return(
+        {"content": message.content, "sender": sender, "msgID": crypto.randomUUID()}
+    )
+}
+
+export async function getMessage(id: string): Promise<Message[]> {
+    const res = await fetch(`${API_URL}/conversations/${id}/messages`, {
+        method: 'GET',
+        headers: {
+            "X-API-Key": API_KEY,
+        }
+    })
+    if (!res.ok) throw new Error(`API error ${res.status}`)
+    const data: MessageToSend[] = await res.json();
+    return data.map((element: MessageToSend) => messageReverse({message: element}))
+}
+
+
+export async function createConversation(): Promise<string> {
+    const res = await fetch(`${API_URL}/conversations`, {
+        method: 'POST',
+        headers: {
+            "X-API-Key": API_KEY,
+        }
+    })
+    if (!res.ok) throw new Error(`API error ${res.status}`)
+    const data = await res.json()
+    return data.id
+}
 
 export async function sendChat(messages: Message[]): Promise<string> {
     const res = await fetch(`${API_URL}/chat`, {
@@ -35,7 +60,8 @@ export async function sendChat(messages: Message[]): Promise<string> {
     return data.reply
 }
 
-export async function streamChat(messages: Message[], 
+export async function streamChat(messages: Message[],
+    conversationId: string,
     onToken: (text: string) => void): Promise<void> {
         const res = await fetch(`${API_URL}/chat/stream`, {
             method: "POST",
@@ -44,8 +70,9 @@ export async function streamChat(messages: Message[],
                 "X-API-Key": API_KEY
             },
             body: JSON.stringify({ messages: messages.map((message: Message) => (
-                messageChange({message})
-            ))}),
+                messageChange({message}))),
+                conversation_id: conversationId,
+        }),
         });
         if (!res.ok || !res.body) throw new Error(`API error ${res.status}`);
 

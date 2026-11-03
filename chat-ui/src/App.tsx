@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import './App.css'
 import type { Message } from "./types";
-import { streamChat } from './api/chat';
-
+import { createConversation, getMessage, streamChat } from './api/chat';
 
 function MessageBubble({message} : {message: Message}) {
   const isUser = message.sender === "user";
@@ -35,6 +34,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   
@@ -42,26 +42,49 @@ function App() {
     bottomRef.current?.scrollIntoView({behavior: "smooth"}); 
   }, [messages]);
 
+  useEffect(() => {
+    
+    async function load(){
+      const convoId: string | null = localStorage.getItem("conversationId");
+      if (!convoId) {
+        const id = await createConversation();
+        localStorage.setItem("conversationId", id)
+        setConversationId(id)
+      } else {
+        const messages = await getMessage(convoId);
+        setMessages(messages);
+        setConversationId(convoId);
+      }
+    }
+    try {
+      load();
+    } catch {
+      setError("Could not load conversation.");
+    }
+  }, []);
+
   async function handleSubmit(e: React.FormEvent){
 
     e.preventDefault();
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || isLoading || !conversationId) return;
 
     const userMsg: Message = {msgID: crypto.randomUUID(), sender: "user", content: text};
     const history = [...messages, userMsg]
     const assistantID = crypto.randomUUID();
+
     setMessages([...history, { msgID: assistantID, sender: "chat", content: ""}]);
     setInput("");
     setIsLoading(true);
     setError(null);
     
     try {
-      await streamChat(history, (t) =>
+      await streamChat(history, conversationId, (t) =>
         setMessages(prev => prev.map(m => m.msgID === assistantID ? { 
           ...m, content: m.content + t } : m
         )))
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Could not reach the server. Is the backend running?")
     } finally {
       setIsLoading(false)
