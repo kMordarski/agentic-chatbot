@@ -9,7 +9,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@4 #cloning repo to VM
+      - uses: actions/checkout@v4 #cloning repo to VM
       - uses: astral-sh/setup-uv@v6 #installing uv
       - run: uv sync
       - run: uv run ruff check .
