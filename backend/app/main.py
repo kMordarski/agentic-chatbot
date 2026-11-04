@@ -38,9 +38,8 @@ async def chat(request: ChatRequest,
 async def chat_stream(request: ChatRequest,
                     llm: Annotated[AnthropicLLM,
                                    Depends(get_llm)],
-                    session: AsyncSession):
-    
-    session = Depends(get_session)
+                    session: Annotated[AsyncSession,
+                                       Depends(get_session)]):
     
     usr_msg = request.messages[-1]
     usr_to_save = MessageRow(conversation_id = request.conversation_id, 
@@ -74,16 +73,15 @@ async def chat_stream(request: ChatRequest,
                             headers={"Cache-Control": "no-cache"})
 
 @app.post("/conversations", dependencies=[Depends(verify_api_key)])
-async def create_conversation(session: AsyncSession):
-    session = Depends(get_session)
+async def create_conversation(session: Annotated[AsyncSession, Depends(get_session)]):
     conv = Conversation()
     session.add(conv)
     await session.commit()
     return {"id": str(conv.id)}
 
 @app.get("/conversations/{conversation_id}/messages", dependencies=[Depends(verify_api_key)])
-async def get_messages(conversation_id: uuid.UUID, session: AsyncSession):
-    session = Depends(get_session)
+async def get_messages(conversation_id: uuid.UUID, session: Annotated[AsyncSession, 
+                                                                      Depends(get_session)]):
     stmt = (
         select(MessageRow)
         .where(MessageRow.conversation_id == conversation_id)
