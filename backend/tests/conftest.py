@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
  
 import app.main as main_module
-import app.models  # noqa: F401  (registers the tables on Base.metadata)
+import app.models
 from app.db import Base, get_session
 from app.llm import get_llm
 from app.main import app

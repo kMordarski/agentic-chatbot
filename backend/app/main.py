@@ -3,18 +3,17 @@ import uuid
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.llm import AnthropicLLM, get_llm
-from app.settings import settings
-from app.schemas import ChatRequest, ChatResponse
-from app.auth import verify_api_key
-from app.db import get_session, SessionLocal
-from app.models import Conversation, MessageRow
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth import verify_api_key
+from app.db import SessionLocal, get_session
+from app.llm import AnthropicLLM, get_llm
+from app.models import Conversation, MessageRow
+from app.schemas import ChatRequest, ChatResponse
+from app.settings import settings
 
 app = FastAPI()
 
@@ -39,7 +38,9 @@ async def chat(request: ChatRequest,
 async def chat_stream(request: ChatRequest,
                     llm: Annotated[AnthropicLLM,
                                    Depends(get_llm)],
-                    session: AsyncSession = Depends(get_session)):
+                    session: AsyncSession):
+    
+    session = Depends(get_session)
     
     usr_msg = request.messages[-1]
     usr_to_save = MessageRow(conversation_id = request.conversation_id, 
@@ -73,14 +74,16 @@ async def chat_stream(request: ChatRequest,
                             headers={"Cache-Control": "no-cache"})
 
 @app.post("/conversations", dependencies=[Depends(verify_api_key)])
-async def create_conversation(session: AsyncSession = Depends(get_session)):
+async def create_conversation(session: AsyncSession):
+    session = Depends(get_session)
     conv = Conversation()
     session.add(conv)
     await session.commit()
     return {"id": str(conv.id)}
 
 @app.get("/conversations/{conversation_id}/messages", dependencies=[Depends(verify_api_key)])
-async def get_messages(conversation_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+async def get_messages(conversation_id: uuid.UUID, session: AsyncSession):
+    session = Depends(get_session)
     stmt = (
         select(MessageRow)
         .where(MessageRow.conversation_id == conversation_id)

@@ -1,9 +1,10 @@
-from anthropic import AsyncAnthropic
-
-from app.settings import settings
-from app.schemas import Message
 from collections.abc import AsyncIterator
 from functools import lru_cache
+
+from anthropic import AsyncAnthropic
+
+from app.schemas import Message
+from app.settings import settings
 
 SYSTEM_PROMPT = "you are a helpful assistant"
 
